@@ -19,8 +19,9 @@
     "dotenv": "^17.2.2",
     "express": "^5.1.0",
     "multer": "^2.0.2",
+    "openai": "^5.23.0",
     "typescript": "^5.9.2",
-    "zod": "^4.1.11"
+    "zod": "^3.25.76"
   },
   "devDependencies": {
     "@types/node": "^24.5.2",
