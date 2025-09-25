@@ -1,8 +1,11 @@
 import { Lead, Offer } from "../types";
 import OpenAI from "openai";
 import { leadSchema } from "../config/lead";
+import dotenv from "dotenv";
+dotenv.config();
 
 const OPENAI_KEY = process.env.OPENAI_API_KEY || "";
+console.log("Using OpenAI Key:", OPENAI_KEY ? "Yes" : "No");
 
 function roleScore(role: string): number {
   if (!role) return 0;
