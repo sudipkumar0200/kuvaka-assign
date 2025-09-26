@@ -2,7 +2,7 @@ import { Router } from "express";
 import multer from "multer";
 import { parseCSVLeads } from "../controllers/leads";
 
-const upload = multer({ dest: "uploads/" });
+const upload = multer({ dest: "/temp" });
 const router = Router();
 
 /**
