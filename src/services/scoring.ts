@@ -7,6 +7,9 @@ dotenv.config();
 const OPENAI_KEY = process.env.OPENAI_API_KEY || "";
 console.log("Using OpenAI Key:", OPENAI_KEY ? "Yes" : "No");
 
+/**
+ * Assigns points based on role seniority.
+ */
 function roleScore(role: string): number {
   if (!role) return 0;
   const r = role.toLowerCase();
@@ -16,6 +19,9 @@ function roleScore(role: string): number {
   return 0;
 }
 
+/**
+ * Assigns points if the lead's industry matches offer use cases.
+ */
 function industryScore(industry: string, offer: Offer): number {
   if (!industry) return 0;
   const ind = industry.toLowerCase();
@@ -27,6 +33,9 @@ function industryScore(industry: string, offer: Offer): number {
   return 0;
 }
 
+/**
+ * Gives points if lead data is sufficiently complete.
+ */
 function completenessScore(lead: Lead): number {
   return lead.name &&
     lead.role &&
@@ -38,6 +47,10 @@ function completenessScore(lead: Lead): number {
     : 0;
 }
 
+
+/**
+ * Calculates a rule-based score for a lead.
+ */
 export function ruleScore(lead: Lead, offer: Offer): number {
   return (
     roleScore(lead.role) +
@@ -83,19 +96,27 @@ async function aiLayer(
     });
 
     const text = resp.choices?.[0]?.message?.content || "";
+
+    //Defaults
     let intent = "Low",
       reasoning = text,
       points = 10;
     try {
+
+      //extract JSON from the response
       const j = JSON.parse(
         text.replace(/^[\s\S]*?\{/, "{").replace(/\}\s*[\s\S]*$/, "}")
       );
       intent = j.intent || "Low";
       reasoning = j.explain || text;
     } catch (e) {
+
+      // If parsing fails, fall back to regex based intent detection
       if (/high/i.test(text)) intent = "High";
       else if (/medium/i.test(text)) intent = "Medium";
     }
+
+    // Assigning points based on intent
     if (intent.toLowerCase() === "high") points = 50;
     else if (intent.toLowerCase() === "medium") points = 30;
     else points = 10;
@@ -110,6 +131,10 @@ async function aiLayer(
   }
 }
 
+/**
+ * Validates a lead, applies rule-based scoring, and combines with AI classification.
+ * Returns Fully scored result object
+ */
 export async function scoreLead(leadRaw: Lead, offer: Offer) {
   const parsed = leadSchema.safeParse(leadRaw);
   if (!parsed.success) {
@@ -121,9 +146,17 @@ export async function scoreLead(leadRaw: Lead, offer: Offer) {
     };
   }
   const lead = parsed.data;
+  // Get rule-based score
   const r = ruleScore(lead, offer);
+
+  // Get AI-based classification
   const ai = await aiLayer(lead, offer);
+
+  // Combine for final score and return detailed result
   const final = r + ai.points;
+
+
+  
   return {
     name: lead.name,
     role: lead.role,
